@@ -87,7 +87,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="MiniMind LoRA Fine-tuning")
     parser.add_argument("--save_dir", type=str, default="../out/lora", help="模型保存目录")
     parser.add_argument("--lora_name", type=str, default="lora_training_data", help="LoRA权重名称(如lora_identity/lora_medical等)")
-    parser.add_argument("--epochs", type=int, default=50, help="训练轮数")
+    parser.add_argument("--epochs", type=int, default=1, help="训练轮数")
     parser.add_argument("--batch_size", type=int, default=32, help="batch size")
     parser.add_argument("--learning_rate", type=float, default=1e-4, help="初始学习率")
     parser.add_argument("--device", type=str, default="cuda:0" if torch.cuda.is_available() else "cpu", help="训练设备")
@@ -112,7 +112,7 @@ if __name__ == "__main__":
     local_rank = init_distributed_mode()
     #用于检查Pytorch的分布式进程组是否已经初始化
     if dist.is_initialized() : args.device = f"cuda:{local_rank}"
-    setup_seed(42 + (dist.get_rank if dist.is_initialized() else 0))
+    setup_seed(42 + (dist.get_rank() if dist.is_initialized() else 0))
 
     #2配置目录，模型参数，检测ckp
     os.makedirs(args.save_dir, exist_ok=True)
