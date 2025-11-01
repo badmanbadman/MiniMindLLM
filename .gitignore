@@ -1,0 +1,7 @@
+model/__pycache__
+out
+website/
+docs-minimind/
+dataset/processed_data
+dataset/raw_texts
+checkpoints
