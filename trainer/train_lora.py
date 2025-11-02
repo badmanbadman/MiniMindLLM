@@ -85,7 +85,7 @@ def train_epoch(epoch,loader, iters, lora_patams, start_step=0,wandb=None):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="MiniMind LoRA Fine-tuning")
-    parser.add_argument("--save_dir", type=str, default="../out/lora", help="模型保存目录")
+    parser.add_argument("--save_dir", type=str, default="../out//pth/lora", help="模型保存目录")
     parser.add_argument("--lora_name", type=str, default="lora_training_data", help="LoRA权重名称(如lora_identity/lora_medical等)")
     parser.add_argument("--epochs", type=int, default=1, help="训练轮数")
     parser.add_argument("--batch_size", type=int, default=8, help="batch size")

@@ -69,12 +69,6 @@ class PretrainDataset(Dataset):
         
             # enumerate(f, 1): 遍历文件的每一行，同时记录行号（从1开始）
             for line_num,line in enumerate(f,1):
-                # 调试用的
-                if line_num > 100:
-                    break
-                if line_num < 2:
-                    print(line)
-
                 # line.strip():去除行首尾的空白字符（包括换行符）
                 # json.loads():将JSON字符串解析为Python字典
                 # 注意：数据集中，每一行应该是一个完整的JSON对象，

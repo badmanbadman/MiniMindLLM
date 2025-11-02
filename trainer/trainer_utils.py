@@ -153,7 +153,12 @@ def lm_checkpoint(lm_config, weight='full_sft',model=None,optimizer=None,epoch=0
             return ckp_data
         return None
 
-def init_model(lm_config,from_weight='pretrain',tokenizer_path='../model',save_dir="../out",device='cuda'):
+def init_model(
+        lm_config,
+        from_weight='pretrain',
+        tokenizer_path='../model',
+        save_dir="../out",
+        device='cuda'):
     from transformers import AutoTokenizer
     from model.model_minimind import MiniMindForCausalLM
 
