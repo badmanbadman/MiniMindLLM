@@ -178,13 +178,13 @@ def main():
     
     # 模型路径配置
     MODEL_PATHS = {
-        "MiniMind2": ['MiniMind2', "MiniMind2"],
+        "MiniMind2": [os.path.join(PROJECT_ROOT, "out/transformer/MiniMind2"), "MiniMind2"],
     }
     
     # LoRA 路径配置（根据您的实际路径修改）
     LORA_PATHS = {
         "无 LoRA": None,
-        "h_lora": os.path.join(PROJECT_ROOT, "out/lora/training_data_lora_converted"), 
+        # "h_lora": os.path.join(PROJECT_ROOT, "out/lora/training_data_lora_converted"), 
     }
     
     # 侧边栏配置
