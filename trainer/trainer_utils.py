@@ -119,7 +119,7 @@ def lm_checkpoint(lm_config, weight='full_sft',model=None,optimizer=None,epoch=0
         # 重新加载的配置数据
         resume_data = {
             "model": state_dict,
-            "optimmizer": optimizer.state_dict(),
+            "optimizer": optimizer.state_dict(),
             "epoch": epoch,
             "step": step,
             "world_size": dist.get_world_size() if dist.is_initialized() else 1, #cup个数发现变化
