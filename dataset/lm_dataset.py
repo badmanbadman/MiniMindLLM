@@ -65,15 +65,18 @@ class PretrainDataset(Dataset):
 
     def load_data(self,path):
         samples = []
-        with open(path,'r',encoding='utf-8') as f:
+        with open(path,'r',encoding='utf-8', errors='ignore') as f:
         
             # enumerate(f, 1): 遍历文件的每一行，同时记录行号（从1开始）
             for line_num,line in enumerate(f,1):
                 # line.strip():去除行首尾的空白字符（包括换行符）
                 # json.loads():将JSON字符串解析为Python字典
                 # 注意：数据集中，每一行应该是一个完整的JSON对象，
-                data = json.loads(line.strip())
-                samples.append(data)
+                try:
+                    data = json.loads(line.strip())
+                    samples.append(data)
+                except:
+                        print(f'第{line_num}行解析出错')
         return samples
  
     def __len__(self):
@@ -466,31 +469,19 @@ class DPODataset(Dataset):
     def _generate_loss_mask(self, input_ids):
         loss_mask = [0] * len(input_ids)
         i = 0
-        """
-        <|im_start|>system
-        你是助手<|im_end|>
-        <|im_start|>user
-        你好<|im_end|>
-        <|im_start|>assistant
-        你好！有什么可以帮助你的吗？<|im_end|>
-        """
         while i < len(input_ids):
             if input_ids[i:i+len(self.bos_id)] == self.bos_id:
-                # 找到序列开始的位置
-                start = i + len(self.bos_id)
+                start = i = len(self.bos_id)
                 end = start
                 while end < len(input_ids):
-                    # 如果找到序列结束的位置，就退出while循环，没找到就给end进行累加1
                     if input_ids[end:end + len(self.eos_id)] == self.eos_id:
                         break
                     end +=1
-                for j in range(start + 1, min(end + len(self.eos_id) + 1, self.max_length)):
-                    # 对开始位置 + 1 后开始循环，对初始化的掩码矩阵进行掩码设置
-                    loss_mask[j] = 1
-                # 对i进行赋值（用来） 结束位置index + 结束位置标识长度（因为是个字符串）
-                i = end + len(self.eos_id) if end < len(input_ids) else len(input_ids)
-            else:
-                i += 1
+                for j in range(start+1, min(end +len(self.eos_id)+1, self.max_length)):
+                    loss_mask[j]
 
-        return loss_mask
+
+
+
+
     
