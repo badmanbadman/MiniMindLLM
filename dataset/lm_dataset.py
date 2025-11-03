@@ -226,6 +226,8 @@ class SFTDataset(Dataset):
             传递工具函数定义，让模板知道可用的工具
             则会个对支持函数调用的模型很重要
         """
+
+
         """不同模型的模板差异
         LLaMA风格模板
             <|system|>
@@ -365,6 +367,130 @@ class SFTDataset(Dataset):
         return X,Y,loss_mask
 
 
+# Direct Preference Optimization 直接偏好优化
+class DPODataset(Dataset):
+    def __init__(self, file_path,tokenizer, max_length=4096):
+        super().__init__()
+        self.tokenizer = tokenizer
+        self.max_length=max_length
+        self.padding = tokenizer.pad_token_id if tokenizer.pad_token_id is not None else 0
+        # Beginning Of Sequence 序列开始id
+        self.bos_id = tokenizer(f"{tokenizer.bos_token}assistant", add_special_token=False).input_ids
+        self.eos_id = tokenizer(f"{tokenizer.eos_token}", add_specual_token=False).input_ids
+        with open(file_path, 'r', encoding='utf-8') as f:
+            self.data = []
+            for line in f:
+                line = line.split()
+                obj = json.loads(line)
+                self.data.append(obj)
 
+    def __len__(self):
+        return len(self.data)
+    
+    def __getitem__(self, index):
+        item = self.data[index]
+        # 被选择的
+        chosen = item['chosen'] # 是一个list，里面包含 若干{role， content}
+        # 被拒绝的
+        rejected = item['rejected'] # 是一个list，里面包含 若干{role， content}
+        
+        """
+        生成如下格式字符串
+        <|im_start|>system
+        你是助手<|im_end|>
+        <|im_start|>user
+        你好<|im_end|>
+        <|im_start|>assistant
+        你好！有什么可以帮助你的吗？<|im_end|>
+        """
+        chosen_prompt = self.tokenizer.apply_chat_template(
+            chosen, tokenize=False, add_generation_prompt=False
+        )
 
+        rejected_prompt = self.tokenizer.apply_chat_template(
+            rejected, tokenize=False, add_generation_prompt=False
+        )
+
+        # 构建输入文本
+        """
+        str(sample[text]):确保输入是字符串
+        max_length:序列最大长度
+        padding='max_length'：填充到最大长度
+        truncation=True: 超过最大长度时截断
+        return_tensors='pt'：返回PyTorch张量
+        """
+        chosen_encoding = self.tokenizer(
+            chosen_prompt, 
+            truncation=True,
+            max_length=self.max_length,
+            padding='max_length'
+        )
+
+        rejected_encoding = self.tokenizer(
+            rejected_prompt,
+            truncation=True,
+            max_length=self.max_length,
+            padding='max_length'
+        )
+
+        """
+        分词
+            self.tonkenizer(prompt) 将文本转化为token
+            例如"我爱你 汪婷婷" -> [100,234,455,453,3434,3434]
+            获取input_ids # 提取token id列表，
+        """
+        chosen_input_ids = chosen_encoding['input_ids']
+        chose_loss_mask = self._generate_loss_mask(chosen_input_ids)
+
+        rejected_input_ids = rejected_encoding['input_ids']
+        rejected_loss_mask = self._generate_loss_mask(rejected_input_ids)
+
+        #  构建训练数据
+        x_chosen = torch.tensor(chosen_input_ids[:-1], dtype=torch.long)
+        y_chosen = torch.tensor(chosen_input_ids[1:], dtype=torch.long)
+        mask_chosen = torch.tensor(chose_loss_mask[1:], dtype=torch.long)
+        
+        x_rejected = torch.tensor(rejected_input_ids[:-1], dtype=torch.long)
+        y_rejected = torch.tensor(rejected_input_ids[1:],dtype=torch.long)
+        mask_rejected = torch.tensor(rejected_loss_mask[1:], dtype=torch.long)
+
+        return {
+            'x_chosen': x_chosen,
+            'y_chosen': y_chosen,
+            'mask_chosen': mask_chosen,
+            'x_rejected': x_rejected,
+            'y_rejected': y_rejected,
+            'mask_rejected': mask_rejected
+        }
+    
+    def _generate_loss_mask(self, input_ids):
+        loss_mask = [0] * len(input_ids)
+        i = 0
+        """
+        <|im_start|>system
+        你是助手<|im_end|>
+        <|im_start|>user
+        你好<|im_end|>
+        <|im_start|>assistant
+        你好！有什么可以帮助你的吗？<|im_end|>
+        """
+        while i < len(input_ids):
+            if input_ids[i:i+len(self.bos_id)] == self.bos_id:
+                # 找到序列开始的位置
+                start = i + len(self.bos_id)
+                end = start
+                while end < len(input_ids):
+                    # 如果找到序列结束的位置，就退出while循环，没找到就给end进行累加1
+                    if input_ids[end:end + len(self.eos_id)] == self.eos_id:
+                        break
+                    end +=1
+                for j in range(start + 1, min(end + len(self.eos_id) + 1, self.max_length)):
+                    # 对开始位置 + 1 后开始循环，对初始化的掩码矩阵进行掩码设置
+                    loss_mask[j] = 1
+                # 对i进行赋值（用来） 结束位置index + 结束位置标识长度（因为是个字符串）
+                i = end + len(self.eos_id) if end < len(input_ids) else len(input_ids)
+            else:
+                i += 1
+
+        return loss_mask
     
