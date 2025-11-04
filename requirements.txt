@@ -29,3 +29,6 @@ einops==0.8.1
 swanlab==0.6.8
 # torch==2.3.0
 # torchvision==0.18.0
+
+uvicorn==0.38.0
+fastapi==0.121.0
