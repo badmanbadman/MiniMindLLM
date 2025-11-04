@@ -50,7 +50,7 @@ def convert_torch2transformers_llama(lm_config,torch_path, transformers_path, dt
     llama_model.save_pretrained(transformers_path)
     model_params = sum(p.numel() for p in llama_model.parameters() if p.requires_grad)
     print(f'模型参数: {model_params / 1e6} 百万 = {model_params / 1e9} B (Billion)')
-    tokenizer = AutoTokenizer.from_pretrained('./model/')
+    tokenizer = AutoTokenizer.from_pretrained('../model/')
     tokenizer.save_pretrained(transformers_path)
     print(f"模型已保存为 Transformers-Llama 格式: {transformers_path}")
 
@@ -70,6 +70,6 @@ if __name__ == '__main__':
         use_moe=False
     )
 
-    torch_path = f"out/pth/full_sft_{lm_config.hidden_size}{'_moe' if lm_config.use_moe else ''}.pth"
-    transformers_path = '../transformer/MiniMind_Full_SFT'
+    torch_path = f"../out/pth/full_sft_{lm_config.hidden_size}{'_moe' if lm_config.use_moe else ''}.pth"
+    transformers_path = '../out/transformer/MiniMind_Full_SFT'
     convert_torch2transformers_llama(lm_config,torch_path, transformers_path)
