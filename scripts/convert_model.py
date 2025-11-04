@@ -70,6 +70,6 @@ if __name__ == '__main__':
         use_moe=False
     )
 
-    torch_path = f"out/transformer/full_sft_{lm_config.hidden_size}{'_moe' if lm_config.use_moe else ''}.pth"
+    torch_path = f"out/pth/full_sft_{lm_config.hidden_size}{'_moe' if lm_config.use_moe else ''}.pth"
     transformers_path = '../transformer/MiniMind_Full_SFT'
     convert_torch2transformers_llama(lm_config,torch_path, transformers_path)
