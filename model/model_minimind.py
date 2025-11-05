@@ -257,7 +257,7 @@ class Attention(nn.Module):
                     scores = scores + extended_attention_mask
                 
                 # 计算注意力权重
-                scores = F.softmax(scores.float(), dim=1).type_as(xq)
+                scores = F.softmax(scores.float(), dim=-1).type_as(xq)
                 scores = self.attn_dropout(scores)
 
                 # 应用注意力权重到值
@@ -947,7 +947,7 @@ class MOEFeedForward(nn.Module):
         y=torch.empty_like(x,dtype=torch.float16)  #使用fp16节省内存
 
         # 并行处理所有专家
-        for i,   in enumerate(self.experts):
+        for i, expert  in enumerate(self.experts):
             # 找出应该由当前专家处理的token   
             """
             比如i = 0,mask会返回一个长度与flat_topk_idx相等的布尔掩码矩阵
