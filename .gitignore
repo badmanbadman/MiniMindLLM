@@ -6,3 +6,4 @@ dataset/processed_data
 dataset/raw_texts
 checkpoints
 MiniMind2/
+dist/model-api/model
